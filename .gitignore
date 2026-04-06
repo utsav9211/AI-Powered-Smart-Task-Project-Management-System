@@ -1,0 +1,48 @@
+# --- OS / Editor ---
+.DS_Store
+.vscode/
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+venv/
+.venv/
+.env/
+
+# Environment files (do NOT commit secrets)
+**/.env
+**/.env.*
+
+# Allow safe env templates
+!**/.env.example
+!**/.env.*.example
+
+# Databases / local state
+*.db
+*.sqlite
+*.sqlite3
+
+# --- Node / Next.js ---
+node_modules/
+.next/
+out/
+dist/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+
+# Docker local overrides
+docker-compose.override.yml

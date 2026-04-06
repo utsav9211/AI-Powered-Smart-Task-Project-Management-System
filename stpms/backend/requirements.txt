@@ -1,0 +1,12 @@
+fastapi[standard]
+sqlalchemy
+alembic
+psycopg2-binary
+python-jose[cryptography]
+passlib[bcrypt]
+redis
+google-generativeai
+langchain
+langchain-google-genai
+pydantic
+pydantic-settings
