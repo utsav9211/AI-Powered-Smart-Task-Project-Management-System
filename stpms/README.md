@@ -10,13 +10,19 @@ STPMS is an AI-powered project management tool built with a modern stack: Next.j
 - **AI Brain**: LangChain + Google Gemini Pro
 
 ## Prerequisites
-- Docker & Docker Compose
+- Docker Desktop (for running via Docker Compose)
 - Node.js 18+ (if running frontend locally)
 - Python 3.10+ (if running backend locally)
 - A Google Gemini API Key
 
 ## Environment Variables
-Before running the application, ensure the `.env` files are configured properly. They have been pre-filled with `.env.example` equivalents in the respective folders.
+Before running the application, copy the example templates and fill in real values. Real `.env` files are intentionally ignored by git.
+
+```bash
+# from stpms/
+cp backend/.env.example backend/.env
+cp frontend/.env.local.example frontend/.env.local
+```
 
 **`backend/.env`**
 ```env
@@ -37,9 +43,10 @@ NEXTAUTH_URL=http://localhost:3000
 
 ## Setup & Running with Docker (Recommended)
 
-1. Ensure Docker is running.
+1. Install Docker Desktop and ensure Docker is running.
 2. Build and start all services via Docker Compose:
    ```bash
+   cd stpms
    docker compose up -d --build
    ```
 3. Run Database Migrations (Backend):
@@ -52,23 +59,27 @@ NEXTAUTH_URL=http://localhost:3000
 
 ## Local Development (Without Docker)
 
+If Docker is not installed, you can still run locally using SQLite (and without Redis). This is the fastest way to get started on macOS.
+
 ### Backend
-1. Start infrastructure (DB & Redis): 
-   ```bash
-   docker compose up -d db redis
-   ```
-2. Setup Python environment:
+1. Setup Python environment:
    ```bash
    cd backend
    python -m venv venv
    source venv/bin/activate
    pip install -r requirements.txt
    ```
+2. Configure env (SQLite default):
+   ```bash
+   cp .env.example .env
+   ```
 3. Run migrations and start server:
    ```bash
    alembic upgrade head
-   uvicorn main:app --reload
+   uvicorn main:app --reload --port 8000
    ```
+
+If port `8000` is already in use, pick another port (example `8001`).
 
 ### Frontend
 1. Install node modules:
