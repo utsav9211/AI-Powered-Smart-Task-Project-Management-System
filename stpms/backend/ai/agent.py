@@ -19,10 +19,32 @@ def _get_llm() -> ChatGoogleGenerativeAI:
         raise RuntimeError(
             "Gemini API key is not configured. Set GOOGLE_API_KEY (or GEMINI_API_KEY) in backend/.env"
         )
-    return ChatGoogleGenerativeAI(
-        model="gemini-1.5-flash",
-        google_api_key=api_key,
-        temperature=0.2,
+
+    preferred = os.getenv("GEMINI_MODEL")
+    candidates = [
+        preferred,
+        "gemini-2.5-flash",
+        "gemini-2.5-flash-lite",
+    ]
+
+    errors: list[str] = []
+    for model_name in [m for m in candidates if m]:
+        try:
+            llm = ChatGoogleGenerativeAI(
+                model=model_name,
+                google_api_key=api_key,
+                temperature=0.2,
+            )
+            # Validate model availability once so requests don't silently degrade.
+            llm.invoke("Reply with exactly: OK")
+            return llm
+        except Exception as e:
+            errors.append(f"{model_name}: {type(e).__name__}: {e}")
+
+    raise RuntimeError(
+        "No compatible Gemini model available. Set GEMINI_MODEL in backend/.env. "
+        f"Tried: {', '.join([m for m in candidates if m])}. "
+        f"Errors: {' | '.join(errors[:2])}"
     )
 
 class TaskExtraction(BaseModel):
@@ -382,7 +404,7 @@ def analyze_user_message(
         "- If the user is asking for suggestions ('what task should I add'), propose the single best next task for the selected project.\n"
         "- Include a 'task' object with: title, description (or null), priority (High|Medium|Low), due_date (YYYY-MM-DD or null), project_id (integer or null).\n"
         "If intent!=create_task, set task=null.\n\n"
-        "Respond ONLY with JSON: { 'intent': 'create_task|project_summary|clarify', 'message': 'string', 'task': object|null }"
+        "Respond ONLY with JSON: {{ 'intent': 'create_task|project_summary|clarify', 'message': 'string', 'task': object|null }}"
     )
 
     chain = prompt | llm

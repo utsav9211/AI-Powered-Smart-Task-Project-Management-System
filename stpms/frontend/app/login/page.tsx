@@ -1,12 +1,17 @@
 "use client"
 
-import { useState } from "react"
-import { signIn } from "next-auth/react"
+import { useEffect, useState } from "react"
+import { signIn, useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 
 export default function Login() {
   const router = useRouter()
+  const { data: session } = useSession()
   const [error, setError] = useState("")
+
+  useEffect(() => {
+    if (session) router.push("/")
+  }, [session, router])
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -19,13 +24,12 @@ export default function Login() {
     const res = await signIn("credentials", {
       username,
       password,
-      redirect: false,
+      redirect: true,
+      callbackUrl: "/",
     })
 
     if (res?.error) {
       setError("Invalid credentials")
-    } else {
-      router.push("/")
     }
   }
 
