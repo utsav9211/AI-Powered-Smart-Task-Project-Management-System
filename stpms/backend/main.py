@@ -13,9 +13,32 @@ load_dotenv(dotenv_path=Path(__file__).resolve().parent / ".env")
 
 app = FastAPI(title="Smart Task & Project Management System")
 
+
+def _normalize_origin(origin: str) -> str:
+    return origin.strip().rstrip("/")
+
+
+def _get_cors_origins() -> list[str]:
+    # Prefer CORS_ORIGINS for deployed environments. Example:
+    # CORS_ORIGINS=https://your-app.vercel.app,http://localhost:3000
+    raw_origins = os.getenv("CORS_ORIGINS", "")
+    if raw_origins.strip():
+        origins = [_normalize_origin(origin) for origin in raw_origins.split(",") if origin.strip()]
+        if origins:
+            return origins
+
+    # Backward-compatible fallback.
+    single_origin = os.getenv("CORS_ORIGIN", "http://localhost:3000")
+    return [_normalize_origin(single_origin)]
+
+
+cors_origins = _get_cors_origins()
+cors_origin_regex = os.getenv("CORS_ORIGIN_REGEX")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[os.getenv("CORS_ORIGIN", "http://localhost:3000")],
+    allow_origins=cors_origins,
+    allow_origin_regex=cors_origin_regex,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
