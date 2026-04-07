@@ -26,6 +26,9 @@ target_metadata = Base.metadata
 
 
 def _normalized_database_url(url: str) -> str:
+    if url.startswith("postgres://"):
+        url = url.replace("postgres://", "postgresql://", 1)
+
     if url.startswith("sqlite:///./"):
         relative_path = url.removeprefix("sqlite:///./")
         backend_dir = Path(__file__).resolve().parents[1]

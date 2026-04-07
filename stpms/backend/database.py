@@ -10,6 +10,11 @@ load_dotenv(dotenv_path=BACKEND_DIR / ".env")
 
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./stpms.db")
 
+# Render and some providers expose Postgres URLs as postgres://.
+# SQLAlchemy expects postgresql://.
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
 if DATABASE_URL.startswith("sqlite:///./"):
     relative_path = DATABASE_URL.removeprefix("sqlite:///./")
     absolute_path = (BACKEND_DIR / relative_path).resolve()
