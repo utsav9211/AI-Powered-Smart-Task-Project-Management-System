@@ -2,13 +2,14 @@
 
 import KanbanBoard, { Task } from "@/components/KanbanBoard"
 import { useState, useEffect, useCallback } from 'react'
+import { Suspense } from "react"
 import { useSearchParams } from 'next/navigation'
 import api from "@/lib/api"
 import { useSession } from "next-auth/react"
 import { Project } from "@/app/page"
 import type { AxiosError } from "axios"
 
-export default function TasksPage() {
+function TasksPageContent() {
   const { status } = useSession()
   const searchParams = useSearchParams()
   const projectIdParam = searchParams.get('projectId')
@@ -253,5 +254,13 @@ export default function TasksPage() {
         </div>
       )}
     </div>
+  )
+}
+
+export default function TasksPage() {
+  return (
+    <Suspense fallback={<div className="py-10 text-center text-gray-500">Loading...</div>}>
+      <TasksPageContent />
+    </Suspense>
   )
 }

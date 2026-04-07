@@ -100,7 +100,8 @@ export default function AIAssistant() {
 
       const data = response.data
       setAssistantMessage(data.message)
-      setMessages((prev) => [...prev, { role: "assistant", content: data.message }].slice(-20))
+      const assistantReply: ChatMessage = { role: "assistant", content: data.message }
+      setMessages((prev) => [...prev, assistantReply].slice(-20))
 
       if (data.type === "task") {
         setPreview(data.task)

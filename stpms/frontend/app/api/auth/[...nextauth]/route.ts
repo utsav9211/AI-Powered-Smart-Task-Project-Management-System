@@ -1,8 +1,9 @@
 import NextAuth, { NextAuthOptions } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import axios from "axios"
+import { getBackendBaseUrlCandidates } from "@/lib/backend-url"
 
-export const authOptions: NextAuthOptions = {
+const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
       name: "Credentials",
@@ -13,28 +14,43 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         if (!credentials?.username || !credentials?.password) return null
 
-        try {
-          const res = await axios.post(
-            `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/auth/login`,
-            new URLSearchParams({
-              username: credentials.username,
-              password: credentials.password,
-            }),
-            { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
-          )
-          
-          if (res.data?.access_token) {
-            return {
-              id: credentials.username,
-              name: credentials.username,
-              accessToken: res.data.access_token,
+        const candidates = getBackendBaseUrlCandidates()
+
+        for (const baseUrl of candidates) {
+          try {
+            const res = await axios.post(
+              `${baseUrl}/auth/login`,
+              new URLSearchParams({
+                username: credentials.username,
+                password: credentials.password,
+              }),
+              { headers: { "Content-Type": "application/x-www-form-urlencoded" } }
+            )
+
+            if (res.data?.access_token) {
+              return {
+                id: credentials.username,
+                name: credentials.username,
+                accessToken: res.data.access_token,
+              }
             }
+            return null
+          } catch (e: unknown) {
+            if (axios.isAxiosError(e) && e.response?.status === 401) {
+              return null
+            }
+
+            // Try next candidate only for network-level failures.
+            if (axios.isAxiosError(e) && !e.response) {
+              continue
+            }
+
+            console.error(e)
+            return null
           }
-          return null
-        } catch (e) {
-          console.error(e)
-          return null
         }
+
+        return null
       }
     })
   ],

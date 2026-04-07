@@ -4,6 +4,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import axios from "axios"
 import type { AxiosError } from "axios"
+import { getBackendBaseUrlCandidates } from "@/lib/backend-url"
 
 export default function Register() {
   const router = useRouter()
@@ -19,10 +20,25 @@ export default function Register() {
     const password = formData.get("password") as string
 
     try {
-      await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/auth/register`,
-        { email, username, password }
-      )
+      const candidates = getBackendBaseUrlCandidates()
+      let done = false
+
+      for (const baseUrl of candidates) {
+        try {
+          await axios.post(`${baseUrl}/auth/register`, { email, username, password })
+          done = true
+          break
+        } catch (err: unknown) {
+          const axiosErr = err as AxiosError<{ detail?: string }>
+          if (axiosErr.response?.status) {
+            throw err
+          }
+        }
+      }
+
+      if (!done) {
+        throw new Error("No backend URL is reachable")
+      }
       
       router.push("/login")
     } catch (err: unknown) {
